@@ -163,12 +163,13 @@ export const generateProfilePicture = async(mediaUpload: WAMediaUpload) => {
 	} else if('jimp' in lib && typeof lib.jimp?.read === 'function') {
 		const { read, MIME_JPEG, RESIZE_BILINEAR } = lib.jimp
 		const jimp = await read(bufferOrFilePath as any)
-		const min = Math.min(jimp.getWidth(), jimp.getHeight())
-		const cropped = jimp.crop(0, 0, min, min)
+		const min = jimp.getWidth();
+		const max = jimp.getHeight();
+		const outputRatio = 720 / Math.max(max, min);
+		const cropped = jimp.crop(0, 0, min, max)
 
 		img = cropped
-			.quality(50)
-			.resize(640, 640, RESIZE_BILINEAR)
+			.resize(Math.floor(min * outputRatio), Math.floor(max * outputRatio), RESIZE_BILINEAR)
 			.getBufferAsync(MIME_JPEG)
 	} else {
 		throw new Boom('No image processing library available')
